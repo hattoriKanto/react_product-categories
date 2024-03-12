@@ -1,3 +1,4 @@
+/* eslint-disable comma-dangle */
 /* eslint-disable arrow-parens */
 /* eslint-disable quotes */
 /* eslint-disable jsx-a11y/accessible-emoji */
@@ -9,7 +10,12 @@ import usersFromServer from "./api/users";
 import categoriesFromServer from "./api/categories";
 import productsFromServer from "./api/products";
 
-function preparedProducts(selectedUser, query) {
+const SORT_BY_ID = "id";
+const SORT_BY_NAME = "name";
+const SORT_BY_CATEGORY = "category";
+const SORT_BY_USER = "user";
+
+function preparedProducts(selectedUser, query, sortBy) {
   let products = [...productsFromServer].map((product) => {
     const category = getCategoryById(product.categoryId);
     const user = getUserById(category.ownerId);
@@ -44,14 +50,50 @@ function preparedProducts(selectedUser, query) {
     });
   }
 
+  if (sortBy) {
+    products = products.sort((product1, product2) => {
+      const [productInfo1, categoryInfo1, userInfo1] = product1;
+      const [productInfo2, categoryInfo2, userInfo2] = product2;
+
+      switch (sortBy) {
+        case SORT_BY_ID:
+          return productInfo1.id - productInfo2.id;
+        case SORT_BY_NAME:
+          return productInfo1.name.localeCompare(productInfo2.name);
+        case SORT_BY_CATEGORY:
+          return categoryInfo1.title.localeCompare(categoryInfo2.title);
+        case SORT_BY_USER:
+          return userInfo1.name.localeCompare(userInfo2.name);
+        default:
+          return 0;
+      }
+    });
+  }
+
   return products;
 }
 
 export const App = () => {
   const users = [...usersFromServer];
+  const categories = [...categoriesFromServer];
+
   const [selectedUser, setSelectedUser] = useState("");
   const [querySearch, setQuerySearch] = useState("");
-  const visibleProducts = preparedProducts(selectedUser, querySearch);
+  const [sortBy, setSortBy] = useState("");
+  const [counterClickId, setCounterClickId] = useState(0);
+  const [counterClickName, setCounterClickName] = useState(0);
+  const [counterClickCategory, setCounterClickCategory] = useState(0);
+  const [counterClickUser, setCounterClickUser] = useState(0);
+
+  const visibleProducts = preparedProducts(selectedUser, querySearch, sortBy);
+
+  const setCounter = (prevCounter) => {
+    if (prevCounter > 3) {
+      return 0;
+    }
+
+    return prevCounter + 1;
+  };
 
   return (
     <div className="section">
@@ -128,28 +170,16 @@ export const App = () => {
                 All
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+              {categories.map((category) => (
+                <a
+                  key={category.id}
+                  data-cy="Category"
+                  className="button mr-2 my-1"
+                  href="#/"
+                >
+                  {category.title}
+                </a>
+              ))}
             </div>
 
             <div className="panel-block">
@@ -179,9 +209,30 @@ export const App = () => {
                   <th>
                     <span className="is-flex is-flex-wrap-nowrap">
                       ID
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => {
+                          setSortBy(SORT_BY_ID);
+                          setCounterClickId(setCounter);
+                        }}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              "fas",
+                              {
+                                "fa-sort":
+                                  counterClickId === 0 || counterClickId === 3,
+                              },
+                              {
+                                "fa-sort-up": counterClickId === 1,
+                              },
+                              {
+                                "fa-sort-down": counterClickId === 2,
+                              }
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
@@ -190,9 +241,31 @@ export const App = () => {
                   <th>
                     <span className="is-flex is-flex-wrap-nowrap">
                       Product
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => {
+                          setSortBy(SORT_BY_NAME);
+                          setCounterClickName(setCounter);
+                        }}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-down" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              "fas",
+                              {
+                                "fa-sort":
+                                  counterClickName === 0 ||
+                                  counterClickName === 3,
+                              },
+                              {
+                                "fa-sort-up": counterClickName === 1,
+                              },
+                              {
+                                "fa-sort-down": counterClickName === 2,
+                              }
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
@@ -201,9 +274,31 @@ export const App = () => {
                   <th>
                     <span className="is-flex is-flex-wrap-nowrap">
                       Category
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => {
+                          setSortBy(SORT_BY_CATEGORY);
+                          setCounterClickCategory(setCounter);
+                        }}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-up" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              "fas",
+                              {
+                                "fa-sort":
+                                  counterClickCategory === 0 ||
+                                  counterClickCategory === 3,
+                              },
+                              {
+                                "fa-sort-up": counterClickCategory === 1,
+                              },
+                              {
+                                "fa-sort-down": counterClickCategory === 2,
+                              }
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
@@ -212,9 +307,31 @@ export const App = () => {
                   <th>
                     <span className="is-flex is-flex-wrap-nowrap">
                       User
-                      <a href="#/">
+                      <a
+                        href="#/"
+                        onClick={() => {
+                          setSortBy(SORT_BY_USER);
+                          setCounterClickUser(setCounter);
+                        }}
+                      >
                         <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
+                          <i
+                            data-cy="SortIcon"
+                            className={classNames(
+                              "fas",
+                              {
+                                "fa-sort":
+                                  counterClickUser === 0 ||
+                                  counterClickUser === 3,
+                              },
+                              {
+                                "fa-sort-up": counterClickUser === 1,
+                              },
+                              {
+                                "fa-sort-down": counterClickUser === 2,
+                              }
+                            )}
+                          />
                         </span>
                       </a>
                     </span>
