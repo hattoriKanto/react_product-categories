@@ -87,13 +87,13 @@ export const App = () => {
 
   const visibleProducts = preparedProducts(selectedUser, querySearch, sortBy);
 
-  const setCounter = (prevCounter) => {
+  function setCounter(prevCounter) {
     if (prevCounter === 3) {
       return 0;
     }
 
     return prevCounter + 1;
-  };
+  }
 
   return (
     <div className="section">
