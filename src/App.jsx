@@ -88,7 +88,7 @@ export const App = () => {
   const visibleProducts = preparedProducts(selectedUser, querySearch, sortBy);
 
   const setCounter = (prevCounter) => {
-    if (prevCounter > 3) {
+    if (prevCounter === 3) {
       return 0;
     }
 
