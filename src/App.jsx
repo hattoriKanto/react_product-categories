@@ -9,14 +9,7 @@ import usersFromServer from "./api/users";
 import categoriesFromServer from "./api/categories";
 import productsFromServer from "./api/products";
 
-// const products = productsFromServer.map((product) => {
-//   const category = null; // find by product.categoryId
-//   const user = null; // find by category.ownerId
-
-//   return null;
-// });
-
-function preparedProducts(selectedUser) {
+function preparedProducts(selectedUser, query) {
   let products = [...productsFromServer].map((product) => {
     const category = getCategoryById(product.categoryId);
     const user = getUserById(category.ownerId);
@@ -40,13 +33,25 @@ function preparedProducts(selectedUser) {
     });
   }
 
+  if (query) {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    products = products.filter((product) => {
+      const [productInfo] = product;
+      const normalizedName = productInfo.name.trim().toLowerCase();
+
+      return normalizedName.includes(normalizedQuery);
+    });
+  }
+
   return products;
 }
 
 export const App = () => {
   const users = [...usersFromServer];
   const [selectedUser, setSelectedUser] = useState("");
-  const visibleProducts = preparedProducts(selectedUser);
+  const [querySearch, setQuerySearch] = useState("");
+  const visibleProducts = preparedProducts(selectedUser, querySearch);
 
   return (
     <div className="section">
@@ -93,21 +98,24 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={querySearch}
+                  onChange={(event) => setQuerySearch(event.target.value)}
                 />
-
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {querySearch && (
+                  <span className="icon is-right">
+                    {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setQuerySearch("")}
+                    />
+                  </span>
+                )}
               </p>
             </div>
 
